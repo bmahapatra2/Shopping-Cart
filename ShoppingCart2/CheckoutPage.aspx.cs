@@ -4,10 +4,10 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using static System.Collections.Generic.Dictionary<string,float>;
+using static System.Collections.Generic.Dictionary<string, float>;
 using System.Data.SqlClient;
 using System.Data;
-
+using System.Web.Configuration;
 namespace ShoppingCart2
 {
     public partial class CheckoutPage : System.Web.UI.Page
@@ -20,8 +20,9 @@ namespace ShoppingCart2
         float total = 0;
         protected void Page_Load(object sender, EventArgs e)
         {
-            connectionString = "Data Source=TAVDESKRENT004;Initial Catalog=Shopping Cart;User Id=sa;Password=test123!@#";
-            cartItems = (Dictionary<string, float>)(HttpContext.Current.Session["cartItem"]);
+            connectionString = WebConfigurationManager.ConnectionStrings["Shopping CartConnectionString"].ConnectionString;
+            // connectionString = "Data Source=TAVDESK015;Initial Catalog=Shopping Cart;User Id=sa;Password=test123!@#";
+            cartItems = (Dictionary<string, float>)(HttpContext.Current.Session["cartItems"]);
             KeyCollection coll = cartItems.Keys;
             List<string> items = coll.ToList();
             ChocolateName = new Label[cartItems.Count];
@@ -50,42 +51,51 @@ namespace ShoppingCart2
         protected void Onclick(object sender, EventArgs e)
         {
             var orderId = SaveOrder();
-            var cart = (Dictionary<string, float>)(HttpContext.Current.Session["cartItem"]);
-          
+            var cart = (Dictionary<string, float>)(HttpContext.Current.Session["cartItems"]);
+
 
             foreach (var key in cart.Keys)
             {
                 SaveOrderItem(orderId, key, cart[key]);
             }
             Session["cart"] = new Dictionary<string, int>();
-            Response.Redirect("ShoppingCart.aspx");
+            Response.Redirect("BillingPage.aspx");
         }
         private void SaveOrderItem(Guid orderId, string chocolateId, float price)
         {
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                conn.Open();
-                string command = $"insert into OrderDetails values('{orderId}','{chocolateId}','{price}')";
-                SqlCommand cmd = new SqlCommand(command, conn);
-                cmd.ExecuteNonQuery();
+                try
+                {
+                    conn.Open();
+                    string command = $"insert into OrderDetails values('{orderId}','{chocolateId}','{price}')";
+                    SqlCommand cmd = new SqlCommand(command, conn);
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception exception)
+                {
+                    Response.Write("<script>if(confirm('Something Bad happened, Please contact Administrator!!!!')){window.location=InventoryManagement.aspx}</script>");
+                }
             }
         }
-
-        protected void Button1_Click(object sender, EventArgs e)
-        {
-            Response.Redirect("BillingPage.aspx");
-        }
-
         private Guid SaveOrder()
         {
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 var orderId = Guid.NewGuid();
-                conn.Open();
-                string command = $"insert into [Order] values('{orderId}','{total}',CURRENT_TIMESTAMP)";
-                SqlCommand cmd = new SqlCommand(command, conn);
-                cmd.ExecuteNonQuery();
+                try
+                {
+                    conn.Open();
+                    string command = $"insert into [Order] values('{orderId}','{total}',CURRENT_TIMESTAMP)";
+                    SqlCommand cmd = new SqlCommand(command, conn);
+                    cmd.ExecuteNonQuery();
+                   // return orderId;
+                }
+                catch (Exception exception)
+                {
+                    Response.Write("<script>if(confirm('Something Bad happened, Please contact Administrator!!!!')){window.location=InventoryManagement.aspx}</script>");
+                }
                 return orderId;
             }
         }

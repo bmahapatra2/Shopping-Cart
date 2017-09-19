@@ -39,8 +39,8 @@
         </asp:GridView>
         <div style="margin-left: 160px">
             <br />
-            <asp:Button ID="Button4" runat="server" OnClick="OnClick" Height="44px" Text="Checkout" Width="140px" />
-            <asp:Button ID="Button5" runat="server" Height="44px" OnClick="Button5_Click" Text="AdminControl" Width="120px" />
+            <asp:Button ID="Button4" runat="server" OnClick="Btn_OnClick" Height="44px" Text="Checkout" Width="140px" />
+            <asp:Button ID="Button5" runat="server" Height="44px" OnClick="Btn_Click" Text="AdminControl" Width="120px" />
         </div>
         <div style="margin-left: 160px">
         </div>
